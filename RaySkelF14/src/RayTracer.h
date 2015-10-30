@@ -26,6 +26,9 @@ public:
 
 	bool sceneLoaded();
 
+	// Trace Param functions
+	void setDepth(int depth);
+
 private:
 	unsigned char *buffer;
 	int buffer_width, buffer_height;
@@ -33,6 +36,9 @@ private:
 	Scene *scene;
 
 	bool m_bSceneLoaded;
+
+	// Trace Params
+	int m_iDepth;
 };
 
 #endif // __RAYTRACER_H__

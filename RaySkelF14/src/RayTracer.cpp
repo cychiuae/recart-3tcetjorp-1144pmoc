@@ -17,7 +17,7 @@ vec3f RayTracer::trace( Scene *scene, double x, double y )
 {
     ray r( vec3f(0,0,0), vec3f(0,0,0) );
     scene->getCamera()->rayThrough( x,y,r );
-	return traceRay( scene, r, vec3f(1.0,1.0,1.0), 0 ).clamp();
+	return traceRay( scene, r, vec3f(1.0,1.0,1.0), m_iDepth ).clamp();
 }
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
@@ -26,6 +26,10 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 	const vec3f& thresh, int depth )
 {
 	isect i;
+
+	if (depth < 0) {
+		return vec3f(0, 0, 0);
+	}
 
 	if( scene->intersect( r, i ) ) {
 		// YOUR CODE HERE
@@ -53,7 +57,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		// R = reflectionDirection(    )
 		vec3f reflectionPosition = r.at(t);
 		vec3f incidentDirection = r.getDirection().normalize();
-		vec3f reflectionDirection = incidentDirection + 2 * (incidentDirection.dot(i.N.normalize)) * i.N.normalize();
+		vec3f reflectionDirection = incidentDirection + 2 * (incidentDirection.dot(i.N.normalize())) * i.N.normalize();
 		ray reflectionRay(reflectionPosition, reflectionDirection);
 
 		// I <- I + mtrl.kr * traceRay(scene, Q, R)
@@ -62,7 +66,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 			I[i] += mtrl.kr[i] * reflectionIntensity[i];
 		}
 
-
+		mtrl.index;
 
 		return mtrl.shade(scene, r, i);
 	
@@ -82,6 +86,9 @@ RayTracer::RayTracer()
 	scene = NULL;
 
 	m_bSceneLoaded = false;
+	
+	// Trace param 
+	m_iDepth = 0;
 }
 
 
@@ -184,4 +191,10 @@ void RayTracer::tracePixel( int i, int j )
 	pixel[0] = (int)( 255.0 * col[0]);
 	pixel[1] = (int)( 255.0 * col[1]);
 	pixel[2] = (int)( 255.0 * col[2]);
+}
+
+// Trace Param function
+
+void RayTracer::setDepth(int depth) {
+	m_iDepth = depth;
 }
