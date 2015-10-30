@@ -18,5 +18,31 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
     // You will need to call both distanceAttenuation() and shadowAttenuation()
     // somewhere in your code in order to compute shadows and light falloff.
 
-	return kd;
+    vec3f V = -r.getDirection(); // View(EYES)
+ 	vec3f N = i.N.normalize(); // Normal
+ 	vec3f Q = r.at(i.t); // intersect_point
+
+	vec3f Ia = scene->getIntensity();
+	vec3f KaIa = ka;
+	KaIa[0] *= Ia[0];
+	KaIa[1] *= Ia[1];
+	KaIa[2] *= Ia[2];
+	vec3f intensity = (ke + KaIa);
+
+	for (list<Light*>::const_iterator Light=scene->beginLights(); Light != scene->endLights(); ++Light){
+
+		vec3f atten = (*Light)->distanceAttenuation(Q) * (*Light)->shadowAttenuation(Q);
+
+		vec3f inDirVec = (-(*Light)->getDirection(Q)).normalize(); // Incedient ray
+		vec3f R = (inDirVec - 2 * inDirVec.dot(N) * N).normalize(); // Reflection ray
+		vec3f L = (*Light)->getDirection(Q);   // Light Source
+		vec3f diffuse = kd * max(N.dot(L), 0.0);
+		vec3f specular = ks * pow(max(R.dot(V),0.0),shininess*128);
+
+		intensity[0] += atten[0] * (diffuse[0] + specular[0]);
+		intensity[1] += atten[1] * (diffuse[1] + specular[1]);
+		intensity[2] += atten[2] * (diffuse[2] + specular[2]);
+	}
+
+	return intensity;
 }
