@@ -34,19 +34,37 @@ protected:
 	vec3f 		orientation;
 };
 
+
 class PointLight
 	: public Light
 {
 public:
-	PointLight( Scene *scene, const vec3f& pos, const vec3f& color )
-		: Light( scene, color ), position( pos ) {}
+	PointLight( Scene *scene, const vec3f& pos, const vec3f& color, double c_coeff = 0.0, double l_coeff = 0.0, double q_coeff = 1.0 )
+		: Light(scene, color), position(pos), const_coeff(c_coeff), lin_coeff(l_coeff), quard_coeff(q_coeff) {}
+	virtual vec3f  shadowAttenuation(const vec3f& P) const;
+	virtual double distanceAttenuation( const vec3f& P ) const;
+	virtual vec3f  getColor( const vec3f& P ) const;
+	virtual vec3f  getDirection( const vec3f& P ) const;
+protected:
+	vec3f    position;
+	double   const_coeff;
+	double   lin_coeff;
+	double   quard_coeff;
+
+};
+
+class AmbientLight
+	: public Light
+{
+public:
+	AmbientLight( Scene *scene, const vec3f& color ) : Light( scene, color ) {}
 	virtual vec3f shadowAttenuation(const vec3f& P) const;
 	virtual double distanceAttenuation( const vec3f& P ) const;
 	virtual vec3f getColor( const vec3f& P ) const;
-	virtual vec3f getDirection( const vec3f& P ) const;
+	virtual vec3f  getDirection( const vec3f& P ) const;
 
 protected:
-	vec3f position;
+
 };
 
 #endif // __LIGHT_H__

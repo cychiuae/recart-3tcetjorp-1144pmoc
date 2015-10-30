@@ -307,7 +307,13 @@ static void processGeometry( string name, Obj *child, Scene *scene,
 		} else if( name == "box" ) {
 			obj = new Box( scene, mat );
 		} else if( name == "cylinder" ) {
-			obj = new Cylinder( scene, mat );
+			bool capped;
+			if(hasField( child, "capped") ){
+				capped = getField( child, "capped" )->getScalar();
+			}else{
+				capped = false;
+			}
+			obj = new Cylinder( scene, mat, capped );
 		} else if( name == "cone" ) {
 			double height = 1.0;
 			double bottom_radius = 1.0;
@@ -524,14 +530,36 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 		scene->add( new DirectionalLight( scene, 
 			tupleToVec( getField( child, "direction" ) ).normalize(),
 			tupleToVec( getColorField( child ) ) ) );
+	} else if( name == "ambient_light" ) {
+
+		scene->add( new AmbientLight( scene, 
+			tupleToVec( getColorField( child ) ) ) );
+
 	} else if( name == "point_light" ) {
 		if( child == NULL ) {
 			throw ParseError( "No info for point_light" );
 		}
 
+		double c_coeff, l_coeff, q_coeff;
+		c_coeff = l_coeff = 0;
+		q_coeff = 1;
+		if(hasField( child, "constant_attenuation_coeff" )){
+			c_coeff = getField( child, "constant_attenuation_coeff" )->getScalar();
+		}
+		if(hasField( child, "linear_attenuation_coeff" )){
+			l_coeff = getField( child, "linear_attenuation_coeff" )->getScalar();
+		}
+		if(hasField( child, "quadratic_attenuation_coeff" )){
+			q_coeff = getField( child, "quadratic_attenuation_coeff" )->getScalar();
+		}
+
 		scene->add( new PointLight( scene, 
 			tupleToVec( getField( child, "position" ) ),
-			tupleToVec( getColorField( child ) ) ) );
+			tupleToVec( getColorField( child ) ),
+			c_coeff,
+			l_coeff,
+			q_coeff
+			 ) );
 	} else if( 	name == "sphere" ||
 				name == "box" ||
 				name == "cylinder" ||
@@ -553,3 +581,4 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 		throw ParseError( string( "Unrecognized object: " ) + name );
 	}
 }
+
