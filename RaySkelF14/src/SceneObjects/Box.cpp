@@ -15,6 +15,7 @@ bool Box::intersectLocal( const ray& r, isect& i ) const
 
 	const vec3f rayDirection = r.getDirection();
 	const vec3f rayPosition = r.getPosition();
+	int tAsix = 0;
 
 	for (int i = 0; i < 3; i++) {
 		if (rayDirection[i] == 0) {
@@ -34,6 +35,7 @@ bool Box::intersectLocal( const ray& r, isect& i ) const
 
 		if (t1 > tNear) {
 			tNear = t1;
+			tAsix = i;
 		}
 
 		if (t2 < tFar) {
@@ -47,6 +49,20 @@ bool Box::intersectLocal( const ray& r, isect& i ) const
 
 	i.obj = this;
 	i.setT(tNear);
+
+	switch (tAsix) {
+		case 0:
+			i.N = vec3f((rayDirection[0] < 0.0) ? 1.0 : -1.0, 0.0, 0.0);
+			break;
+
+		case 1:
+			i.N = vec3f(0.0, (rayDirection[1] < 0.0) ? 1.0 : -1.0, 0.0);
+			break;
+
+		case 2:
+			i.N = vec3f(0.0, 0.0, (rayDirection[2] < 0.0) ? 1.0 : -1.0);
+			break;
+	}
 
 	return true;
 }
