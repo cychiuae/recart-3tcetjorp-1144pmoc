@@ -532,7 +532,7 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 			tupleToVec( getColorField( child ) ) ) );
 	} else if( name == "ambient_light" ) {
 
-		scene->add( new AmbientLight( scene, 
+		scene->addAmbientLight( new AmbientLight( scene, 
 			tupleToVec( getColorField( child ) ) ) );
 
 	} else if( name == "point_light" ) {

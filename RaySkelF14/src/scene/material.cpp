@@ -4,6 +4,15 @@
 
 // Apply the phong model to this point on the surface of the object, returning
 // the color of that point.
+vec3f Material::getTotalAmibientLightIntensity(Scene *scene, vec3f pt) const{
+	vec3f intensity(0,0,0);
+	for (auto const ambient_light : scene->getAmibientLights()){
+		intensity += ambient_light->getColor(pt);
+	}
+	return intensity;
+
+}
+
 vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 {
 	// YOUR CODE HERE
@@ -22,7 +31,7 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
  	vec3f N = i.N.normalize(); // Normal
  	vec3f Q = r.at(i.t); // intersect_point
 
-	vec3f Ia = scene->getIntensity();
+	vec3f Ia = getTotalAmibientLightIntensity(scene, Q);
 	vec3f KaIa = ka;
 	KaIa[0] *= Ia[0];
 	KaIa[1] *= Ia[1];
@@ -39,9 +48,9 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 		vec3f diffuse = kd * max(N.dot(L), 0.0);
 		vec3f specular = ks * pow(max(R.dot(V),0.0),shininess*128);
 
-		intensity[0] += atten[0] * (diffuse[0] + specular[0]);
-		intensity[1] += atten[1] * (diffuse[1] + specular[1]);
-		intensity[2] += atten[2] * (diffuse[2] + specular[2]);
+		intensity[0] += max(atten[0] * (diffuse[0] + specular[0]),0.0);
+		intensity[1] += max(atten[1] * (diffuse[1] + specular[1]),0.0);
+		intensity[2] += max(atten[2] * (diffuse[2] + specular[2]),0.0);
 	}
 
 	return intensity;

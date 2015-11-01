@@ -18,6 +18,7 @@ using namespace std;
 #include "../vecmath/vecmath.h"
 
 class Light;
+class AmbientLight;
 class Scene;
 
 class SceneElement
@@ -251,7 +252,7 @@ public:
 
 public:
 	Scene() 
-		: transformRoot(), objects(), lights() {}
+		: transformRoot(), objects(), lights(), AmbientLights() {}
 	virtual ~Scene();
 
 	void add( Geometry* obj )
@@ -262,15 +263,13 @@ public:
 	void add( Light* light )
 	{ lights.push_back( light ); }
 
-	vec3f getIntensity() const { return Ia;};
-	void setIntensity(vec3f &a) {Ia = a;};
-
 	bool intersect( const ray& r, isect& i ) const;
 	void initScene();
-
+	list<AmbientLight*> getAmibientLights() const { return AmbientLights; };
+	void addAmbientLight(AmbientLight* a_light){ AmbientLights.push_back(a_light); }
 	list<Light*>::const_iterator beginLights() const { return lights.begin(); }
 	list<Light*>::const_iterator endLights() const { return lights.end(); }
-        
+     
 	Camera *getCamera() { return &camera; }
 
 	
@@ -280,8 +279,8 @@ private:
 	list<Geometry*> nonboundedobjects;
 	list<Geometry*> boundedobjects;
     list<Light*> lights;
+    list<AmbientLight*> AmbientLights;
     Camera camera;
-    vec3f Ia;
 	
 	// Each object in the scene, provided that it has hasBoundingBoxCapability(),
 	// must fall within this bounding box.  Objects that don't have hasBoundingBoxCapability()

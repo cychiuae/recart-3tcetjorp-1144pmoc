@@ -52,18 +52,29 @@ protected:
 	double   quard_coeff;
 
 };
-
-class AmbientLight
+class SpotLight
 	: public Light
 {
 public:
-	AmbientLight( Scene *scene, const vec3f& color ) : Light( scene, color ) {}
-	virtual vec3f shadowAttenuation(const vec3f& P) const;
+	SpotLight( Scene *scene, const vec3f& pos, const vec3f& color) : Light(scene, color), position(pos){}
+	virtual vec3f  shadowAttenuation(const vec3f& P) const;
 	virtual double distanceAttenuation( const vec3f& P ) const;
-	virtual vec3f getColor( const vec3f& P ) const;
+	virtual vec3f  getColor( const vec3f& P ) const;
 	virtual vec3f  getDirection( const vec3f& P ) const;
+protected:
+	vec3f    position;
+
+
+};
+
+class AmbientLight
+{
+public:
+	AmbientLight( Scene *scene, const vec3f& color ) {}
+	virtual vec3f getColor( const vec3f& P ) const;
 
 protected:
+	vec3f color;
 
 };
 
