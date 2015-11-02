@@ -32,10 +32,7 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
  	vec3f Q = r.at(i.t); // intersect_point
 
 	vec3f Ia = getTotalAmibientLightIntensity(scene, Q);
-	vec3f KaIa = ka;
-	KaIa[0] *= Ia[0];
-	KaIa[1] *= Ia[1];
-	KaIa[2] *= Ia[2];
+	vec3f KaIa = prod(ka,Ia);
 	vec3f intensity = (ke + KaIa);
 
 	for (list<Light*>::const_iterator Light=scene->beginLights(); Light != scene->endLights(); ++Light){

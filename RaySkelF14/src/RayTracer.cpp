@@ -9,6 +9,7 @@
 #include "fileio/read.h"
 #include "fileio/parse.h"
 
+
 // Trace a top-level ray through normalized window coordinates (x,y)
 // through the projection plane, and out into the scene.  All we do is
 // enter the main ray-tracing method, getting things started by plugging
@@ -17,15 +18,17 @@ vec3f RayTracer::trace( Scene *scene, double x, double y )
 {
     ray r( vec3f(0,0,0), vec3f(0,0,0) );
     scene->getCamera()->rayThrough( x,y,r );
-	return traceRay( scene, r, vec3f(1.0,1.0,1.0), m_iDepth ).clamp();
+	return traceRay( scene, r, vec3f(1.0,1.0,1.0), m_iDepth, 1.0 ).clamp();
 }
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
 // (or places called from here) to handle reflection, refraction, etc etc.
 vec3f RayTracer::traceRay( Scene *scene, const ray& r, 
-	const vec3f& thresh, int depth )
+	const vec3f& thresh, int depth, double prev_index )
 {
 	isect i;
+
+	printf("depth: %d\n",depth);
 
 	if (depth < 0) {
 		return vec3f(0, 0, 0);
@@ -45,7 +48,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 
 		// (t, N, mtrl) <- scene.intersect(P, d)
 		const double t = i.t;
-		const vec3f N = i.N;
+		const vec3f N = i.N.normalize();
 		const Material& mtrl = i.getMaterial();
 
 		// Q <- ray(P, d) evaluated at t
@@ -55,20 +58,41 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		vec3f I = mtrl.shade(scene, r, i);
 		
 		// R = reflectionDirection(    )
-		vec3f reflectionPosition = r.at(t);
+		vec3f reflectionPosition = r.at(t) + RAY_EPSILON * N;
 		vec3f incidentDirection = r.getDirection().normalize();
-		vec3f reflectionDirection = incidentDirection + 2 * (incidentDirection.dot(i.N.normalize())) * i.N.normalize();
+		vec3f reflectionDirection = incidentDirection + 2 * (incidentDirection.dot(N)) * N;
 		ray reflectionRay(reflectionPosition, reflectionDirection);
 
 		// I <- I + mtrl.kr * traceRay(scene, Q, R)
-		vec3f reflectionIntensity = traceRay(scene, reflectionRay, thresh, depth - 1);
+		vec3f reflectionIntensity = traceRay(scene, reflectionRay, thresh, depth - 1, mtrl.index);
 		for (int i = 0; i < 3; i++) {
 			I[i] += mtrl.kr[i] * reflectionIntensity[i];
 		}
 
-		mtrl.index;
+		double n_i, n_t;
+		if (mtrl.index != prev_index){  // if(ray is entering object) then 
+			n_i = 1.0;
+			n_t = mtrl.index;
+		}else {
+			n_i = mtrl.index;
+			n_t = 1.0;
+		}
 
-		return mtrl.shade(scene, r, i);
+
+		double n_r  = n_i/n_t;
+		vec3f refractionPosition = r.at(t) - RAY_EPSILON * N;
+		double tir_factor = 1-pow(n_r,2)*(1-pow(N.dot(-I),2));
+
+		if(!tir_factor<0.0){ // if(notTIR(      )) then 
+			vec3f refractionDirection = (n_r * N.dot(-I) - sqrt(tir_factor))*N + n_r*I; // ??equation may not be correct
+			ray refractionRay(reflectionPosition, reflectionDirection);
+			vec3f refractionIntensity = traceRay(scene, refractionRay, thresh, depth - 1, mtrl.index);
+			for (int i = 0; i < 3; i++) {
+				I[i] += mtrl.kt[i] * refractionIntensity[i];
+			}
+		}else{
+			return I.clamp();
+		}
 	
 	} else {
 		// No intersection.  This ray travels to infinity, so we color
