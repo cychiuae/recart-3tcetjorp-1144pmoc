@@ -19,7 +19,7 @@ bool Box::intersectLocal( const ray& r, isect& i ) const
 
 	for (int i = 0; i < 3; i++) {
 		if (rayDirection[i] == 0) {
-			if (rayDirection[i] < -0.5 || rayDirection[i] > 0.5) {
+			if (rayPosition[i] < -0.5 || rayPosition[i] > 0.5) {
 				return false;
 			}
 		}
@@ -65,4 +65,5 @@ bool Box::intersectLocal( const ray& r, isect& i ) const
 	}
 
 	return true;
+
 }

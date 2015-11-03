@@ -307,12 +307,8 @@ static void processGeometry( string name, Obj *child, Scene *scene,
 		} else if( name == "box" ) {
 			obj = new Box( scene, mat );
 		} else if( name == "cylinder" ) {
-			bool capped;
-			if(hasField( child, "capped") ){
-				capped = getField( child, "capped" )->getScalar();
-			}else{
-				capped = false;
-			}
+			bool capped = true;
+			maybeExtractField( child, "capped", capped);
 			obj = new Cylinder( scene, mat, capped );
 		} else if( name == "cone" ) {
 			double height = 1.0;
@@ -526,11 +522,15 @@ static void processObject( Obj *obj, Scene *scene, mmap& materials )
 		if( child == NULL ) {
 			throw ParseError( "No info for directional_light" );
 		}
-
-		scene->add( new DirectionalLight( scene, 
-			tupleToVec( getField( child, "direction" ) ).normalize(),
-			tupleToVec( getColorField( child ) ) ) );
+		vec3f c = tupleToVec( getField(child, "direction")).normalize();		
+		scene->add(new DirectionalLight(scene,
+			vec3f(0,-1,0).normalize(),
+			vec3f(1, 1, 1)
+			));
 	} else if( name == "ambient_light" ) {
+		if( child == NULL ) {
+			throw ParseError( "No info for ambient_light" );
+		}
 
 		scene->addAmbientLight( new AmbientLight( scene, 
 			tupleToVec( getColorField( child ) ) ) );

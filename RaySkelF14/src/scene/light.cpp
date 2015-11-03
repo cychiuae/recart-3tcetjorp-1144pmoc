@@ -75,7 +75,7 @@ vec3f PointLight::shadowAttenuation(const vec3f& P) const
         if( !lightSrcIsInFrontOfTheObj ){
             intensity = vec3f(1,1,1);
         }else{
-            intensity = vec3f(0,0,0);//m.kt;
+            intensity = m.kt;// vec3f(0,0,0);//m.kt;
         }       
     } 
 

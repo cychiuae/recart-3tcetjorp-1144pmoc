@@ -7,8 +7,11 @@
 vec3f Material::getTotalAmibientLightIntensity(Scene *scene, vec3f pt) const{
 	vec3f intensity(0,0,0);
 	for (auto const ambient_light : scene->getAmibientLights()){
-		intensity += ambient_light->getColor(pt);
+		intensity[0] += ambient_light->getColor(pt)[0];
+		intensity[1] += ambient_light->getColor(pt)[1];
+		intensity[2] += ambient_light->getColor(pt)[2];
 	}
+	//printf("intensity:%d,%d,%d\n",intensity[0],intensity[1],intensity[2]);
 	return intensity;
 
 }
@@ -37,18 +40,27 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 
 	for (list<Light*>::const_iterator Light=scene->beginLights(); Light != scene->endLights(); ++Light){
 
-		vec3f atten = (*Light)->distanceAttenuation(Q) * (*Light)->shadowAttenuation(Q);
+		if(V!=vec3f(0,0,0)){
+			vec3f atten = (*Light)->distanceAttenuation(Q) * (*Light)->shadowAttenuation(Q);
 
-		vec3f inDirVec = (-(*Light)->getDirection(Q)).normalize(); // Incedient ray
-		vec3f R = (inDirVec - 2 * inDirVec.dot(N) * N).normalize(); // Reflection ray
-		vec3f L = (*Light)->getDirection(Q);   // Light Source
-		vec3f diffuse = kd * max(N.dot(L), 0.0);
-		vec3f specular = ks * pow(max(R.dot(V),0.0),shininess*128);
+			vec3f inDirVec = (-(*Light)->getDirection(Q)).normalize(); // Incedient ray
+			vec3f R = (inDirVec - 2 * inDirVec.dot(N) * N).normalize(); // Reflection ray
+			vec3f L = (*Light)->getDirection(Q);   // Light Source
+			vec3f diffuse = kd * max(N.dot(L), 0.0);
+			vec3f specular = ks * pow(max(R.dot(V),0.0),shininess*128);
 
-		intensity[0] += max(atten[0] * (diffuse[0] + specular[0]),0.0);
-		intensity[1] += max(atten[1] * (diffuse[1] + specular[1]),0.0);
-		intensity[2] += max(atten[2] * (diffuse[2] + specular[2]),0.0);
+			intensity[0] += atten[0] * (*Light)->getColor(Q)[0] * (diffuse[0] + specular[0]);
+			intensity[1] += atten[1] * (*Light)->getColor(Q)[1] * (diffuse[1] + specular[1]);
+			intensity[2] += atten[2] * (*Light)->getColor(Q)[2] * (diffuse[2] + specular[2]);			
+		}
+
 	}
-
+	// return vec3f(1,1,0);
+	// if(intensity[0] == intensity[1] == intensity[2] == 0.0){
+	// 	printf("hiu");
+	// 	return vec3f(1,1,0);
+	// }
+	// printf("hime");
 	return intensity;
+	
 }

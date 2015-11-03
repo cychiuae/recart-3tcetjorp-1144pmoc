@@ -67,10 +67,11 @@ protected:
 
 };
 
-class AmbientLight
+class AmbientLight : public SceneElement
 {
 public:
-	AmbientLight( Scene *scene, const vec3f& color ) {}
+
+	AmbientLight( Scene *scene, const vec3f& c ) : color(c), SceneElement(scene) {}
 	virtual vec3f getColor( const vec3f& P ) const;
 
 protected:
