@@ -30,9 +30,6 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 
 	// printf("depth: %d\n",depth);
 
-	if (depth < 0) {
-		return vec3f(0, 0, 0);
-	}
 
 	if( scene->intersect( r, i ) ) {
 		// YOUR CODE HERE
@@ -56,6 +53,10 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		
 		// I = shade(mtrl, scene, Q, N, d)
 		vec3f I = mtrl.shade(scene, r, i);
+
+		if (depth <= 0) {
+			return I;
+		}
 		
 		// R = reflectionDirection(    )
 		vec3f reflectionPosition = r.at(t) + RAY_EPSILON * N;
@@ -71,7 +72,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 
 		double n_i, n_t;
 		if (mtrl.index != prev_index){  // if(ray is entering object) then 
-			n_i = 1.0;
+			n_i = prev_index;
 			n_t = mtrl.index;
 		}else {
 			n_i = mtrl.index;
@@ -83,14 +84,17 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		vec3f refractionPosition = r.at(t) - RAY_EPSILON * N;
 		double tir_factor = 1-pow(n_r,2)*(1-pow(N.dot(-I),2));
 
-		if(!tir_factor<0.0){ // if(notTIR(      )) then 
+		if(tir_factor>=RAY_EPSILON){ // if(notTIR(      )) then 
 			vec3f refractionDirection = (n_r * N.dot(-I) - sqrt(tir_factor))*N + n_r*I; // ??equation may not be correct
 			ray refractionRay(reflectionPosition, reflectionDirection);
 			vec3f refractionIntensity = traceRay(scene, refractionRay, thresh, depth - 1, mtrl.index);
 			for (int i = 0; i < 3; i++) {
+
+				// I[i] *= (1-mtrl.kt[i]);
 				I[i] += mtrl.kt[i] * refractionIntensity[i];
 			}
 		}
+
 		return I.clamp();
 		
 	
