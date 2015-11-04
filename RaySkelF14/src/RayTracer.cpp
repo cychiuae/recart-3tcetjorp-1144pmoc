@@ -61,7 +61,7 @@ vec3f RayTracer::traceRay( Scene *scene, const ray& r,
 		// R = reflectionDirection(    )
 		vec3f reflectionPosition = r.at(t) + RAY_EPSILON * N;
 		vec3f incidentDirection = r.getDirection().normalize();
-		vec3f reflectionDirection = incidentDirection + 2 * (incidentDirection.dot(N)) * N;
+		vec3f reflectionDirection = (incidentDirection + 2 * (-incidentDirection.dot(i.N.normalize())*i.N.normalize())).normalize();
 		ray reflectionRay(reflectionPosition, reflectionDirection);
 
 		// I <- I + mtrl.kr * traceRay(scene, Q, R)
