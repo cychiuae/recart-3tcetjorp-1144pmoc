@@ -118,6 +118,10 @@ void TraceUI::cb_distanceSlides(Fl_Widget* o, void* v)
 {
 	((TraceUI*)(o->user_data()))->m_nDistance=double( ((Fl_Slider *)o)->value() ) ;
 }
+void TraceUI::cb_supersamplingSlides(Fl_Widget* o, void* v)
+{
+	((TraceUI*)(o->user_data()))->m_nSuperSampling=int( ((Fl_Slider *)o)->value() ) ;
+}
 
 void TraceUI::cb_render(Fl_Widget* o, void* v)
 {
@@ -170,6 +174,7 @@ void TraceUI::cb_render(Fl_Widget* o, void* v)
 				}
 
 				pUI->raytracer->setDepth(pUI->getDepth());
+				pUI->raytracer->setSuperSampling(pUI->getSuperSampling());
 				pUI->raytracer->tracePixel( x, y );
 		
 			}
@@ -254,6 +259,11 @@ double TraceUI::getDistance()
 	return m_nDistance;
 }
 
+int TraceUI::getSuperSampling()
+{
+	return m_nSuperSampling;
+}
+
 
 // menu definition
 Fl_Menu_Item TraceUI::menuitems[] = {
@@ -280,6 +290,7 @@ TraceUI::TraceUI() {
 	m_nAmbient = 0.2;
 	m_nIntensity = 1;
 	m_nDistance = 1.87;
+	m_nSuperSampling = 0;
 	m_mainWindow = new Fl_Window(100, 40, 360, 360, "Ray <Not Loaded>");
 		m_mainWindow->user_data((void*)(this));	// record self to be used by static callback functions
 		// install menu bar
@@ -372,18 +383,29 @@ TraceUI::TraceUI() {
 		m_intensitySlider->align(FL_ALIGN_RIGHT);
 		m_intensitySlider->callback(cb_intensitySlides);
 
-		m_distanceSlider = new Fl_Value_Slider(10, 205, 180, 20, "Distance Scale (Log10)");
-		m_distanceSlider->user_data((void*)(this));	// record self to be used by static callback functions
-		m_distanceSlider->type(FL_HOR_NICE_SLIDER);
-        m_distanceSlider->labelfont(FL_COURIER);
-        m_distanceSlider->labelsize(12);
-		m_distanceSlider->minimum(-0.99);
-		m_distanceSlider->maximum(3);
-		m_distanceSlider->step(0.01);
-		m_distanceSlider->value(m_nDistance);
-		m_distanceSlider->align(FL_ALIGN_RIGHT);
-		m_distanceSlider->callback(cb_distanceSlides);
+		// m_distanceSlider = new Fl_Value_Slider(10, 205, 180, 20, "Distance Scale (Log10)");
+		// m_distanceSlider->user_data((void*)(this));	// record self to be used by static callback functions
+		// m_distanceSlider->type(FL_HOR_NICE_SLIDER);
+        // m_distanceSlider->labelfont(FL_COURIER);
+        // m_distanceSlider->labelsize(12);
+		// m_distanceSlider->minimum(-0.99);
+		// m_distanceSlider->maximum(3);
+		// m_distanceSlider->step(0.01);
+		// m_distanceSlider->value(m_nDistance);
+		// m_distanceSlider->align(FL_ALIGN_RIGHT);
+		// m_distanceSlider->callback(cb_distanceSlides);
 
+		m_superSamplingSlider = new Fl_Value_Slider(10, 230, 180, 20, "SuperSampling");
+		m_superSamplingSlider->user_data((void*)(this));	// record self to be used by static callback functions
+		m_superSamplingSlider->type(FL_HOR_NICE_SLIDER);
+        m_superSamplingSlider->labelfont(FL_COURIER);
+        m_superSamplingSlider->labelsize(12);
+		m_superSamplingSlider->minimum(0);
+		m_superSamplingSlider->maximum(10);
+		m_superSamplingSlider->step(1);
+		m_superSamplingSlider->value(m_nSuperSampling);
+		m_superSamplingSlider->align(FL_ALIGN_RIGHT);
+		m_superSamplingSlider->callback(cb_supersamplingSlides);
 
 		m_renderButton = new Fl_Button(240, 27, 70, 25, "&Render");
 		m_renderButton->user_data((void*)(this));

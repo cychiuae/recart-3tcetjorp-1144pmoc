@@ -28,6 +28,7 @@ public:
 
 	// Trace Param functions
 	void setDepth(int depth);
+	void setSuperSampling(int supersampling){ m_iSuperSampling = supersampling;};
 
 private:
 	unsigned char *buffer;
@@ -39,6 +40,7 @@ private:
 
 	// Trace Params
 	int m_iDepth;
+	int m_iSuperSampling;
 };
 
 #endif // __RAYTRACER_H__

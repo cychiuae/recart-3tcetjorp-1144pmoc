@@ -8,6 +8,8 @@
 #include "scene/ray.h"
 #include "fileio/read.h"
 #include "fileio/parse.h"
+#include "UI/TraceUI.h"
+extern class TraceUI *traceUI;
 
 
 // Trace a top-level ray through normalized window coordinates (x,y)
@@ -18,7 +20,7 @@ vec3f RayTracer::trace( Scene *scene, double x, double y )
 {
     ray r( vec3f(0,0,0), vec3f(0,0,0) );
     scene->getCamera()->rayThrough( x,y,r );
-	return traceRay( scene, r, vec3f(1.0,1.0,1.0), m_iDepth, 1.0 ).clamp();
+	return (traceRay( scene, r, vec3f(1.0,1.0,1.0), m_iDepth, 1.0 ) * traceUI->getIntensity()).clamp();
 }
 
 // Do recursive ray tracing!  You'll want to insert a lot of code here
@@ -212,7 +214,32 @@ void RayTracer::tracePixel( int i, int j )
 	double x = double(i)/double(buffer_width);
 	double y = double(j)/double(buffer_height);
 
-	col = trace( scene,x,y );
+	if (m_iSuperSampling > 0)
+		{
+			int sample_size = m_iSuperSampling;
+			double w = 1.0 / double(buffer_width);
+			double h = 1.0 / double(buffer_height);
+			double sub_w = w / sample_size;
+			double sub_h = h / sample_size;
+			for (int i = 0; i < sample_size; i++)
+			{
+				double sub_x = x + ((double)j / sample_size - 0.5) * w;
+				for (int j = 0; j < sample_size; j++)
+				{
+					double sub_y = y + ((double)i / sample_size - 0.5) * h;
+
+					double jitter_x = (rand() / (double)RAND_MAX - 0.5) * sub_w + sub_x;
+					double jitter_y = (rand() / (double)RAND_MAX - 0.5) * sub_h + sub_y;
+
+					col += trace(scene, jitter_x, jitter_y);
+				}
+			}
+			col /= sample_size * sample_size;
+		}
+		else{
+			col = trace( scene,x,y );
+
+		}
 
 	unsigned char *pixel = buffer + ( i + j * buffer_width ) * 3;
 

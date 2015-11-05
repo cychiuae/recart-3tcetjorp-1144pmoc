@@ -35,6 +35,7 @@ public:
 	Fl_Slider*          m_ambientSlider;
 	Fl_Slider*          m_intensitySlider;
 	Fl_Slider*          m_distanceSlider;
+	Fl_Slider*          m_superSamplingSlider;
 
 	Fl_Button*			m_renderButton;
 	Fl_Button*			m_stopButton;
@@ -55,6 +56,7 @@ public:
 	double      getAmbient();
 	int         getIntensity();
 	double      getDistance();
+	int         getSuperSampling();
 
 private:
 	RayTracer*	raytracer;
@@ -67,6 +69,7 @@ private:
 	double      m_nAmbient;
 	int         m_nIntensity;
 	double      m_nDistance;
+	int         m_nSuperSampling;
 
 // static class members
 	static Fl_Menu_Item menuitems[];
@@ -89,6 +92,7 @@ private:
 	static void cb_ambientSlides(Fl_Widget* o, void* v);
 	static void cb_intensitySlides(Fl_Widget* o, void* v);
 	static void cb_distanceSlides(Fl_Widget* o, void* v);
+	static void cb_supersamplingSlides(Fl_Widget* o, void* v);
 
 	static void cb_render(Fl_Widget* o, void* v);
 	static void cb_stop(Fl_Widget* o, void* v);

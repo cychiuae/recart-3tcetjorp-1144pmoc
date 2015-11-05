@@ -1,18 +1,21 @@
 #include "ray.h"
 #include "material.h"
 #include "light.h"
+#include "../UI/TraceUI.h"
+extern class TraceUI *traceUI;
+
 
 // Apply the phong model to this point on the surface of the object, returning
 // the color of that point.
 vec3f Material::getTotalAmibientLightIntensity(Scene *scene, vec3f pt) const{
 	vec3f intensity(0,0,0);
 	for (auto const ambient_light : scene->getAmibientLights()){
-		intensity[0] += ambient_light->getColor(pt)[0];
-		intensity[1] += ambient_light->getColor(pt)[1];
-		intensity[2] += ambient_light->getColor(pt)[2];
+		intensity[0] += ambient_light->getColor(pt)[0] * traceUI->getAttenConstant();
+		intensity[1] += ambient_light->getColor(pt)[1] * traceUI->getAttenLinear();
+		intensity[2] += ambient_light->getColor(pt)[2] * traceUI->getAttenQuadra();
 	}
 	//printf("intensity:%d,%d,%d\n",intensity[0],intensity[1],intensity[2]);
-	return intensity;
+	return intensity * traceUI->getAmbient();
 
 }
 
@@ -53,7 +56,7 @@ vec3f Material::shade( Scene *scene, const ray& r, const isect& i ) const
 		}
 		vec3f atten = (*Light)->distanceAttenuation(Q) * (*Light)->shadowAttenuation(Q);
 		// printf("atten%f,%f,%f",atten[0],atten[1],atten[2]);
-	vec3f inDirVec = (-(*Light)->getDirection(Q)).normalize(); // Incedient ray
+		vec3f inDirVec = (-(*Light)->getDirection(Q)).normalize(); // Incedient ray
 		vec3f R = (inDirVec - 2 * inDirVec.dot(N) * N).normalize(); // Reflection ray
 		vec3f L = (*Light)->getDirection(Q);   // Light Source
 

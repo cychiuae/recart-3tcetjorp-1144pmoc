@@ -1,6 +1,8 @@
 #include <cmath>
-
 #include "light.h"
+#include "../UI/TraceUI.h"
+extern class TraceUI *traceUI;
+
 
 double DirectionalLight::distanceAttenuation( const vec3f& P ) const
 {
