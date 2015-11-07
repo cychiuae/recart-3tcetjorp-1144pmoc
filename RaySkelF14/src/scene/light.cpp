@@ -15,19 +15,19 @@ vec3f DirectionalLight::shadowAttenuation( const vec3f& P ) const
 {
     // YOUR CODE HERE:
     // You should implement shadow-handling code here.
-    
-    vec3f intensity;
-    vec3f dir = getDirection(P);
-    ray r(P + dir * RAY_EPSILON, getDirection(P).normalize());
-    isect intersect;
-    bool isIntersect = scene->intersect(r, intersect);
-    if ( !isIntersect ){
-    	intensity = vec3f(1.0, 1.0, 1.0);
-    }else{
-		const Material& m = intersect.getMaterial();
-    	intensity = m.kt;
+ 
+    const vec3f &dir = getDirection(P);
+    vec3f intensity(1.0, 1.0, 1.0);
+    vec3f point = P + dir * RAY_EPSILON;
+    while (!intensity.iszero()) {
+        isect i;
+        ray shadowRay(point, dir);
+        if (!scene->intersect(shadowRay, i)) {
+            return intensity;
+        }
+        intensity = prod(intensity, i.getMaterial().kt);
+        point = shadowRay.at(i.t) + dir * RAY_EPSILON;
     }
-    // return intensity  = vec3f(1,1,0);
     return intensity;
 
 }
@@ -52,9 +52,9 @@ double PointLight::distanceAttenuation( const vec3f& P ) const
 	// point P.  For now, I assume no attenuation and just return 1.0
     
     double atten;
-    double c = this->const_coeff;
-    double l = this->lin_coeff;
-    double q = this->quard_coeff;
+	double c = traceUI->getAttenConstant();
+	double l = traceUI->getAttenLinear();
+	double q = traceUI->getAttenQuadra();
     double r = (position - P).length();
     atten = 1/( c + l*r + q*pow(r,2) );
     if(atten < 1){
@@ -67,26 +67,21 @@ vec3f PointLight::shadowAttenuation(const vec3f& P) const
 {
     // YOUR CODE HERE:
     // You should implement shadow-handling code here.
-    vec3f intensity = vec3f(0, 0, 0);
-    vec3f d = getDirection(P);
-    isect intersect;
-    ray r = ray(P + d * RAY_EPSILON,d);
-    bool isIntersect = scene->intersect(r, intersect);
-    if(!isIntersect){
-        intensity = vec3f(1,1,1);
-    }else{
-        const Material& m = intersect.getMaterial();
-        vec3f intersect_pt = vec3f(r.at(intersect.t));
-        //bool lightSrcIsInFrontOfTheObj = (intersect_pt - P).length() - (position - P).length();
-        if( (intersect_pt - P).length() > (position - P).length() ){
-            intensity = vec3f(1,1,1);
-        }else{
-            intensity = m.kt;// vec3f(0,0,0);//m.kt;
-        }       
-    } 
+    vec3f intensity(1.0, 1.0, 1.0);
+    const vec3f &dir = getDirection(P);
+    vec3f point = P + dir * RAY_EPSILON;
+    while (!intensity.iszero()){
+        isect i;
+        ray shadowRay(point, dir);
+        const double light_t = (position - point).length();
+        if (!scene->intersect(shadowRay, i) || i.t >= light_t) {
+            return intensity;
+        }
 
+        intensity = prod(intensity, i.getMaterial().kt);
+        point = shadowRay.at(i.t) + dir * RAY_EPSILON;
+    }
     return intensity;
-
 }
 
 vec3f PointLight::getColor( const vec3f& P ) const
