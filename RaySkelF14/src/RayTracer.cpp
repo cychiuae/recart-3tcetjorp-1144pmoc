@@ -216,25 +216,26 @@ void RayTracer::tracePixel( int i, int j )
 
 	if (m_iSuperSampling > 0)
 		{
-			int sample_size = m_iSuperSampling;
-			double w = 1.0 / double(buffer_width);
-			double h = 1.0 / double(buffer_height);
-			double sub_w = w / sample_size;
-			double sub_h = h / sample_size;
-			for (int i = 0; i < sample_size; i++)
+			const int sample = m_iSuperSampling;
+			const double pixel_w = 1.0 / buffer_width;
+			const double pixel_h = 1.0 / buffer_height;
+			const double sub_pixel_w = pixel_w / sample;
+			const double sub_pixel_h = pixel_h / sample;
+			for (int i = 0; i < sample; ++i)
 			{
-				double sub_x = x + ((double)j / sample_size - 0.5) * w;
-				for (int j = 0; j < sample_size; j++)
+				const double base_y = y + ((double)i / sample - 0.5) * pixel_h;
+				for (int j = 0; j < sample; ++j)
 				{
-					double sub_y = y + ((double)i / sample_size - 0.5) * h;
+					const double base_x = x + ((double)j / sample - 0.5) * pixel_w;
 
-					double jitter_x = (rand() / (double)RAND_MAX - 0.5) * sub_w + sub_x;
-					double jitter_y = (rand() / (double)RAND_MAX - 0.5) * sub_h + sub_y;
-
+					const double jitter_y = (rand() / (double)RAND_MAX - 0.5)
+							* sub_pixel_h + base_y;
+					const double jitter_x = (rand() / (double)RAND_MAX - 0.5)
+							* sub_pixel_w + base_x;
 					col += trace(scene, jitter_x, jitter_y);
 				}
 			}
-			col /= sample_size * sample_size;
+			col /= sample * sample;
 		}
 		else{
 			col = trace( scene,x,y );
